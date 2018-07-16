@@ -63,6 +63,7 @@ func (ReadConfig) Read(hasEnv HasEnv) GatewayConfig {
 	cfg.ReadTimeout = parseIntOrDurationValue(hasEnv.Getenv("read_timeout"), defaultDuration)
 	cfg.WriteTimeout = parseIntOrDurationValue(hasEnv.Getenv("write_timeout"), defaultDuration)
 	cfg.UpstreamTimeout = parseIntOrDurationValue(hasEnv.Getenv("upstream_timeout"), defaultDuration)
+	cfg.ScaleFromZero = parseBoolValue(hasEnv.Getenv("scale_from_zero"))
 
 	if len(hasEnv.Getenv("functions_provider_url")) > 0 {
 		var err error
@@ -154,6 +155,9 @@ type GatewayConfig struct {
 
 	// SecretMountPath specifies where to read secrets from for embedded basic auth
 	SecretMountPath string
+
+	// If set to true, the function will scale from zero replicas if it's invoked
+	ScaleFromZero bool
 }
 
 // UseNATS Use NATSor not

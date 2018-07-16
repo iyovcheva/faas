@@ -13,6 +13,7 @@ import (
 	"net/http/httptest"
 	"time"
 
+	"github.com/openfaas/faas/gateway/handlers"
 	"github.com/openfaas/faas/gateway/requests"
 )
 
@@ -59,7 +60,8 @@ func MakeScalingHandler(next http.HandlerFunc, upstream http.HandlerFunc, config
 		}
 
 		if replicas == 0 {
-			minReplicas := uint64(1)
+
+			minReplicas := uint64(handlers.DefaultMinReplicas)
 
 			err := scaleFunction(functionName, minReplicas, upstream)
 			if err != nil {
@@ -102,7 +104,7 @@ func getReplicas(functionName string, upstream http.HandlerFunc) (uint64, int, e
 	rr := httptest.NewRecorder()
 
 	upstream.ServeHTTP(rr, replicasQuery)
-	if rr.Code != 200 {
+	if rr.Code != 200 && rr.Code != 202 {
 		log.Printf("error, query replicas status: %d", rr.Code)
 
 		var errBody string
@@ -133,7 +135,7 @@ func scaleFunction(functionName string, minReplicas uint64, upstream http.Handle
 	rr := httptest.NewRecorder()
 	upstream.ServeHTTP(rr, setReplicasReq)
 
-	if rr.Code != 200 {
+	if rr.Code != 200 && rr.Code != 202 {
 		return fmt.Errorf("scale to 1 replica status: %d", rr.Code)
 	}
 
